@@ -1,34 +1,79 @@
-import { FlatList, Platform, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
-import { useState } from 'react';
+import { Button, FlatList, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState, useCallback } from 'react';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight;
 
 export default function App() {
-  const [items] = useState(
+  const [items, setItems] = useState(
     {
-      todo: [
-        {index: 1, title: '原稿を書く', done: false},
-        {index: 2, title: '犬の散歩をする', done: false},
-      ],
-      currentIndex: 2
+      todo: [],
+      currentIndex: 0,
+      inputText: '',
     }
   );
+
+  const handleChange = useCallback((text) => {
+    setItems((prevItems) => ({
+      ...prevItems,
+      inputText: text,
+    }));
+  }, [])
+
+  const onAddItem = useCallback(() => {
+    setItems((prevItems) => {
+      const title = items.inputText
+      if (title === '') {
+        return prevItems
+      }
+      const index = prevItems.currentIndex + 1
+      const newTodo = { index: index, title: title, done: false}
+      if (prevItems.todo) {
+        const todo = [...prevItems.todo, newTodo]
+        return {
+          todo: todo,
+          currentIndex: index,
+          inputText: ''
+        }
+      }
+      const todo = [newTodo]
+      return {
+        todo: todo,
+        currentIndex: index,
+        inputText: ''
+      }
+    })
+  }, [items])
+
+  const renderItem = ({ item }) => {
+    return (
+      <View>
+        <Text>{item.title}</Text>
+      </View>
+    )
+  }
+
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView style={styles.container} behavior='padding'>
       <View style={styles.filter}>
         <Text>Filterがここに配置されます</Text>
       </View>
-      <ScrollView style={styles.todolist}>
-        <FlatList
-          data={items.todo}
-          renderItem={({item}) => <Text>{item.title}</Text>}
-          keyExtractor={(item) => 'todo_' + item.index}
-        />
-      </ScrollView>
+      <FlatList
+        style={styles.todolist}
+        data={items.todo}
+        renderItem={renderItem}
+        keyExtractor={(item) => 'todo_' + item.index}
+      />
       <View style={styles.input}>
-        <Text>テキスト入力がここに配置されます</Text>
+        <TextInput
+          onChangeText={handleChange}
+          value={items.inputText}
+          style={styles.inputText}
+        />
+        <TouchableOpacity onPress={onAddItem} style={styles.addButton}>
+          <Text style={styles.buttonText}>Add</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -45,6 +90,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   input: {
-    height: 30,
+    height: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 10,
+  },
+  inputText: {
+    flex: 1,
+  },
+  addButton: {
+    backgroundColor: '#841584',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
