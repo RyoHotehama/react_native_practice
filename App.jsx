@@ -1,9 +1,28 @@
-import { Button, FlatList, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useState, useCallback } from 'react';
+import { FlatList, KeyboardAvoidingView, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState, useCallback, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight;
 
+const TODO = '@todoapp.todo';
+
 export default function App() {
+  useEffect(() => {
+    loadTodo()
+  }, [])
+
+  const loadTodo = useCallback(async() => {
+    try {
+      const todoString = await AsyncStorage.getItem(TODO)
+      if (todoString) {
+        const todo = JSON.parse(todoString)
+        const currentIndex = todo.length
+        setItems({todo: todo, currentIndex: currentIndex})
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }, [])
   const [items, setItems] = useState(
     {
       todo: [],
@@ -11,6 +30,15 @@ export default function App() {
       inputText: '',
     }
   );
+
+  const saveTodo = useCallback(async(todo) => {
+    try {
+      const todoString = JSON.stringify(todo)
+      await AsyncStorage.setItem(TODO, todoString)
+    } catch (e) {
+      console.log(e)
+    }
+  }, [])
 
   const handleChange = useCallback((text) => {
     setItems((prevItems) => ({
@@ -29,6 +57,7 @@ export default function App() {
       const newTodo = { index: index, title: title, done: false}
       if (prevItems.todo) {
         const todo = [...prevItems.todo, newTodo]
+        saveTodo(todo)
         return {
           todo: todo,
           currentIndex: index,
@@ -36,6 +65,7 @@ export default function App() {
         }
       }
       const todo = [newTodo]
+      saveTodo(todo)
       return {
         todo: todo,
         currentIndex: index,
