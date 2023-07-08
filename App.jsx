@@ -17,7 +17,11 @@ export default function App() {
       if (todoString) {
         const todo = JSON.parse(todoString)
         const currentIndex = todo.length
-        setItems({todo: todo, currentIndex: currentIndex})
+        setItems((prevItems) => ({
+          ...prevItems,
+          todo: todo,
+          currentIndex: currentIndex
+        }));
       }
     } catch (e) {
       console.log(e)
@@ -28,6 +32,7 @@ export default function App() {
       todo: [],
       currentIndex: 0,
       inputText: '',
+      filterText: '',
     }
   );
 
@@ -47,32 +52,37 @@ export default function App() {
     }));
   }, [])
 
+  const handleFilterChange = useCallback((text) => {
+    setItems((prevItems) => ({
+      ...prevItems,
+      filterText: text || '',
+    }));
+  }, [])
+
   const onAddItem = useCallback(() => {
     setItems((prevItems) => {
-      const title = items.inputText
+      const title = prevItems.inputText
       if (title === '') {
-        return prevItems
+        return prevItems;
       }
-      const index = prevItems.currentIndex + 1
-      const newTodo = { index: index, title: title, done: false}
-      if (prevItems.todo) {
-        const todo = [...prevItems.todo, newTodo]
-        saveTodo(todo)
-        return {
-          todo: todo,
-          currentIndex: index,
-          inputText: ''
-        }
-      }
-      const todo = [newTodo]
-      saveTodo(todo)
+      const index = prevItems.currentIndex + 1;
+      const newTodo = { index: index, title: title, done: false };
+      const todo = [...prevItems.todo, newTodo];
+      saveTodo(todo);
       return {
+        ...prevItems,
         todo: todo,
         currentIndex: index,
         inputText: ''
-      }
-    })
-  }, [items])
+      };
+    });
+  }, []);
+
+  const filterText = items.filterText
+  let filteredTodo = items.todo;
+  if (filterText !== '') {
+    filteredTodo = filteredTodo.filter(t => t.title && t.title.includes(filterText));
+}
 
   const renderItem = ({ item }) => {
     return (
@@ -85,11 +95,16 @@ export default function App() {
   return (
     <KeyboardAvoidingView style={styles.container} behavior='padding'>
       <View style={styles.filter}>
-        <Text>Filterがここに配置されます</Text>
+        <TextInput
+          onChangeText={handleFilterChange}
+          value={items.filterText}
+          style={styles.inputText}
+          placeholder='Type filter text'
+        />
       </View>
       <FlatList
         style={styles.todolist}
-        data={items.todo}
+        data={filteredTodo}
         renderItem={renderItem}
         keyExtractor={(item) => 'todo_' + item.index}
       />
