@@ -6,6 +6,21 @@ const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight;
 
 const TODO = '@todoapp.todo';
 
+const TodoItem = (props) => {
+  let textStyle = styles.TodoItem
+  if (props.done === true) {
+    textStyle = styles.todoItemDone
+  }
+
+  return (
+    <TouchableOpacity onPress={props.onTapTodoItem}>
+      <Text style={textStyle}>
+        {props.title}
+      </Text>
+    </TouchableOpacity>
+  )
+}
+
 export default function App() {
   useEffect(() => {
     loadTodo()
@@ -87,10 +102,28 @@ export default function App() {
   const renderItem = ({ item }) => {
     return (
       <View>
-        <Text>{item.title}</Text>
+        <TodoItem
+          title={item.title}
+          done={item.done}
+          onTapTodoItem={() => onTapTodoItem(item)}
+          >
+          {item.title}
+        </TodoItem>
       </View>
     )
   }
+
+  const onTapTodoItem = useCallback((todoItem) => {
+    const todo = items.todo
+    const index = todo.indexOf(todoItem)
+    todoItem.done = !todoItem.done
+    todo[index] = todoItem
+    setItems((prevItems) => ({
+      ...prevItems,
+      todo: todo,
+    }));
+    saveTodo(todo)
+  },[items])
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior='padding'>
@@ -105,6 +138,7 @@ export default function App() {
       <FlatList
         style={styles.todolist}
         data={filteredTodo}
+        extraData={items}
         renderItem={renderItem}
         keyExtractor={(item) => 'todo_' + item.index}
       />
@@ -153,4 +187,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  todoItem: {
+    fontSize: 20,
+    backgroundColor: 'white'
+  },
+  todoItemDone: {
+    fontSize: 20,
+    backgroundColor: 'red'
+  }
 });
