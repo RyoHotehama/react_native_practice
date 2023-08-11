@@ -6,6 +6,7 @@ const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight;
 
 const TODO = '@todoapp.todo';
 
+// todoItem
 const TodoItem = (props) => {
   let textStyle = styles.TodoItem
   if (props.done === true) {
