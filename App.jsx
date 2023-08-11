@@ -4,9 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight;
 
+// todo名
 const TODO = '@todoapp.todo';
 
-// todoItem
 const TodoItem = (props) => {
   let textStyle = styles.TodoItem
   if (props.done === true) {
