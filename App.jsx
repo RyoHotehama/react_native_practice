@@ -11,6 +11,7 @@ const TodoItem = (props) => {
   if (props.done === true) {
     textStyle = styles.todoItemDone
   }
+// コメント
 
   return (
     <TouchableOpacity onPress={props.onTapTodoItem}>
